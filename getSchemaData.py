@@ -14,11 +14,19 @@ PW = os.environ.get("PASSWORD")
 
 sg = shotgun_api3.Shotgun(URL, login=LOGIN, password=PW)
 
-# dict 형태로 받아오나, 가독성이 좋지 않습니다.
-sys.stdout = open("schema.json", "w", encoding="utf-8")
-data = sg.schema_field_read("Shot")
+
+def saveSchemaField(schemaName):
+    """shotgun의 스키마 필드를 json 형태로 저장해주는 함수입니다.
+
+    Args: 
+      스키마명을 매개변수로 받습니다.
+    """
+    # dict 형태로 받아오나, 가독성이 좋지 않습니다.
+    sys.stdout = open(f"schema/{schemaName}.json", "w", encoding="utf-8")
+    data = sg.schema_field_read(schemaName)
+    json_data = json.dumps(data, indent=4)
+    print(json_data)
 
 
-json_object = json.dumps(data, indent=4)
-
-print(json_object)
+saveSchemaField('Shot')
+saveSchemaField('Task')
