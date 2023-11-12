@@ -27,11 +27,11 @@ def getSchemaFieldData(schema, filter):
     with open(f'schema/{schema}Field.txt', 'w', encoding="utf-8") as file:
         print(f'{schema} 데이터 추출 중 #########')
         for field in fields:
-            shot = sg.find(schema, filter, [field])
-            file.write(str(schema)+'\n')
+            data = sg.find(schema, filter, [field])
+            file.write(str(data)+'\n')
             print(f'현재 {schema}의 {field} 작성 중입니다.')
         print(f'{schema} 데이터 추출 완 #########')
 
 
-getShotFieldData('Shot', [["code", "is", "mf6_604_001_0001"]])
-getShotFieldData('Task', [['entity', 'is', {"type": "Shot", 'id': 180784}]])
+getSchemaFieldData('Shot', [["code", "is", "mf6_604_001_0001"]])
+getSchemaFieldData('Task', [['entity', 'is', {"type": "Shot", 'id': 180784}]])
