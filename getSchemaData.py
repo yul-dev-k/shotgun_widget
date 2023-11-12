@@ -21,7 +21,7 @@ def saveSchemaField(schemaName):
     Args: 
       스키마명을 매개변수로 받습니다.
     """
-    # dict 형태로 받아오나, 가독성이 좋지 않습니다.
+    # dict 형태로 받아오나, 가독성이 좋지 않아 JSON 형태로 추출합니다.
     sys.stdout = open(f"schema/{schemaName}.json", "w", encoding="utf-8")
     data = sg.schema_field_read(schemaName)
     json_data = json.dumps(data, indent=4)
