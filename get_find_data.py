@@ -13,7 +13,7 @@ PW = os.environ.get("PASSWORD")
 sg = shotgun_api3.Shotgun(URL, login=LOGIN, password=PW)
 
 
-def getSchemaFieldData(schema, filter):
+def get_schema_field_data(schema, filter):
     """각 스키마 별 필터를 기반으로 필드를 모두 추출해내는 함수입니다.
 
     Args: 
@@ -33,5 +33,6 @@ def getSchemaFieldData(schema, filter):
         print(f'{schema} 데이터 추출 완 #########')
 
 
-getSchemaFieldData('Shot', [["code", "is", "mf6_604_001_0001"]])
-getSchemaFieldData('Task', [['entity', 'is', {"type": "Shot", 'id': 180784}]])
+get_schema_field_data('Shot', [["code", "is", "mf6_604_001_0001"]])
+get_schema_field_data(
+    'Task', [['entity', 'is', {"type": "Shot", 'id': 180784}]])
