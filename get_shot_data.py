@@ -1,6 +1,7 @@
 import shotgun_api3
 from dotenv import load_dotenv
 import os
+import numpy as np
 
 load_dotenv()
 
@@ -60,17 +61,18 @@ def save_shot_id_data(current_season="6"):
     """
     codes = get_shot_id_data()
 
-    ep = []
     for episode in episodes_id_name:
         for key, val in episode.items():
             if (key == "name"):
-                with open(f'shot/{val}.txt', "w", encoding="utf-8") as file:
-                    file.write("["+'\n')
-                    for code in codes:
-                        if (code["code"].find(f"{val[2:]}", 4) != -1) and (code["code"][2] == current_season):
-                            data = ({"id": code["id"], "code": code["code"]})
-                            file.write(str(data)+","+'\n')
-                    file.write("]"+'\n')
+                ep = []
+                for code in codes:
+                    if (code["code"].find(f"{val[2:]}", 4) != -1) and (code["code"][2] == current_season):
+                        data = ({"id": code["id"], "code": code["code"]})
+                        ep.append(data)
+
+                if ep:
+                    # Save data to a .npy file
+                    np.save(f"shot/{val}.npy", ep)
 
 
 save_shot_id_data("6")
