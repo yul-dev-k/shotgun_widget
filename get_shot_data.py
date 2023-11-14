@@ -53,7 +53,20 @@ def get_shot_id_data():
     return (sg.find('Shot', [], ["code"]))
 
 
-def save_shot_id_data(current_season="6"):
+def get_task_id(shot_id):
+    """shot_id를 기반으로 task의 id를 얻을 수 있는 함수입니다/
+
+    Args:
+        shot_id (int): shot_id가 필수입니다.
+
+    Returns:
+        dict: {type:"Shot", 'id': shot_id, "tasks": [{"id": ..., "name":..., "type": "Task"}, ...]}
+    """
+
+    return sg.find("Shot", [["id", "is", shot_id]], ["tasks"])
+
+
+def save_shot_id_data(task_idx, current_season="6"):
     """현재 에피소드의 샷들을 txt파일로 저장합니다.
 
     Args:
@@ -67,7 +80,10 @@ def save_shot_id_data(current_season="6"):
                 ep = []
                 for code in codes:
                     if (code["code"].find(f"{val[2:]}", 4) != -1) and (code["code"][2] == current_season):
-                        data = ({"id": code["id"], "code": code["code"]})
+                        data = ({"shot_id": code["id"], "code": code["code"], "task_id": get_task_id(
+                            code["id"])[0]["tasks"][task_idx]['id']})
+                        print(f"현재 {data} 저장 중입니다.")
+
                         ep.append(data)
 
                 if ep:
@@ -75,4 +91,6 @@ def save_shot_id_data(current_season="6"):
                     np.save(f"shot/{val}.npy", ep)
 
 
-save_shot_id_data("6")
+save_shot_id_data(4, "6")
+
+# To-Do: 인수값으로 604, 605 ... 이런식으로 특정 화수만 npy 생성해주는 함수도 생성 필요. / 현재는 전 화수를 긁어 오는데, 이제 작업이 끝나가는 화수들의 데이터까진 굳이 필요하지 않을 것 같기 때문.
