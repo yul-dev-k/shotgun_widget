@@ -104,6 +104,12 @@ class ShotGunRetakeWidget(QTableWidget):
     def hide_row(self, row):
         self.setRowHidden(row, True)
 
+    def ellipsis_text(self, text, max_len=50):
+        if len(text) > max_len:
+            return text[:max_len - 3] + "..."
+        else:
+            return text
+
 
 def create_gui(data):
     app = QApplication([])
