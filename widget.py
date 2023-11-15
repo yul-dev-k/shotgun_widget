@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QCheckBox, QVBoxLayout, QWidget, QMessageBox
 from PyQt5.QtCore import Qt
+import numpy as np
 
 
 class ShotGunRetakeWidget(QTableWidget):
@@ -11,7 +12,11 @@ class ShotGunRetakeWidget(QTableWidget):
         self.init_ui()
 
     def filter_data(self, data):
-        return [item for item in data if any(retake["status"] == "rtks" for retake in item[1]["retake"].values())]
+        return [
+            item for item in data if item[1] and item[1].get("retake") and
+            any(retake and retake.get("status") ==
+                "rtks" for retake in item[1]["retake"].values())
+        ]
 
     def init_ui(self):
 
@@ -30,12 +35,12 @@ class ShotGunRetakeWidget(QTableWidget):
             checkbox1 = QCheckBox()
             checkbox2 = QCheckBox()
 
-            status_retake02 = item[1]["retake"]["retake02"]["status"]
+            status_retake02 = item[1]["retake"]["retake02"]["status"] if item[1]["retake"]["retake02"] else None
             checkbox1.setEnabled(status_retake02 == "rtks")
             checkbox1.stateChanged.connect(
                 lambda state, i=i, retake_type="retake02": self.checkbox_state_changed(state, i, retake_type))
 
-            status_retake03 = item[1]["retake"]["retake03"]["status"]
+            status_retake03 = item[1]["retake"]["retake03"]["status"] if item[1]["retake"]["retake03"] else None
             checkbox2.setEnabled(status_retake03 == "rtks")
             checkbox2.stateChanged.connect(
                 lambda state, i=i, retake_type="retake03": self.checkbox_state_changed(state, i, retake_type))
@@ -44,18 +49,26 @@ class ShotGunRetakeWidget(QTableWidget):
             self.setCellWidget(i, 6, checkbox2)
 
             self.setItem(i, 3, QTableWidgetItem(
-                item[1]["retake"]["retake02"]["status"]))
+                str(status_retake02) if status_retake02 else ""))
             self.setItem(i, 4, QTableWidgetItem(
-                str(item[1]["retake"]["retake02"]["image"])))
+                self.ellipsis_text(str(item[1]["retake"]["retake02"]["image"])) if item[1]["retake"]["retake02"] else ""))
             self.setItem(i, 5, QTableWidgetItem(
-                item[1]["retake"]["retake02"]["note"]))
+                str(item[1]["retake"]["retake02"]["note"]) if item[1]["retake"]["retake02"] else ""))
 
             self.setItem(i, 7, QTableWidgetItem(
-                item[1]["retake"]["retake03"]["status"]))
+                str(status_retake03) if status_retake03 else ""))
             self.setItem(i, 8, QTableWidgetItem(
-                str(item[1]["retake"]["retake03"]["image"])))
+                self.ellipsis_text(str(item[1]["retake"]["retake03"]["image"])) if item[1]["retake"]["retake03"] else ""))
             self.setItem(i, 9, QTableWidgetItem(
-                item[1]["retake"]["retake03"]["note"]))
+                str(item[1]["retake"]["retake03"]["note"]) if item[1]["retake"]["retake03"] else ""))
+
+            # Set item flags to make them read-only
+            for j in range(self.columnCount()):
+                item = self.item(i, j)
+                if item:
+                    item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+
+            self.resizeRowToContents(i)
 
         self.setColumnWidth(0, 120)
         self.setColumnWidth(1, 50)
@@ -104,35 +117,8 @@ def create_gui(data):
     app.exec_()
 
 
-# Test the function with your data
-test_data = [
-    [
-        {"shot": {"shot_code": "mf6_604_001_0001", "shot_assignde": "지율 김"}},
-        {"retake": {"retake02":
-                    {"status": "rtks", "image": None,
-                     "note": "연기 좀 줄여주세요 (09/15) ->연기가 좀 더 많아진   느낌인데 확인 부탁드리겠습니다. (09/22)"},
-                    "retake03":
-                        {"status": "stby", "image": None, "note": None}
-                    }}
-    ],
-    [
-        {"shot": {"shot_code": "mf6_604_001_0002", "shot_assignde": "지율 김"}},
-        {"retake": {"retake02":
-                    {"status": "stby", "image": None,
-                     "note": "02번컷 테스트"},
-                    "retake03":
-                        {"status": "rtks", "image": None, "note": "test"}
-                    }}
-    ],
-    [
-        {"shot": {"shot_code": "mf6_604_001_0003", "shot_assignde": "지율 김"}},
-        {"retake": {"retake02":
-                    {"status": "stby", "image": None,
-                     "note": "02번컷 테스트"},
-                    "retake03":
-                        {"status": "stby", "image": None, "note": "test"}
-                    }}
-    ]
-]
+def get_retake_data(ep_num):
+    return (np.load(f"DB/ep{ep_num}.npy", allow_pickle=True))
 
-create_gui(test_data)
+
+create_gui(get_retake_data(606))
