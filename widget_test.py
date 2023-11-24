@@ -8,26 +8,34 @@ class ShotGunRetakeWidget(QWidget):
     def __init__(self):
         super().__init__()
         all_retake = Retake().get_all_retake()
-        self.col_title = ['code', 'assigned', 'note', 'img', 'retake']
+        self.col_title = ['✅', 'code', 'assigned', 'note', 'img', 'retake']
         self.initUI(all_retake, self.col_title)
         self.setWindowTitle('Shotgun Retake Widget')
         self.setWindowIcon(QIcon('icons.png'))
 
     def initUI(self, all_retake, col_title):
         total_shot = len(all_retake)
+        self.checkboxes = []
+
         self.table = QTableWidget()
         self.table.setColumnCount(len(col_title))
         self.table.setHorizontalHeaderLabels(col_title)
         self.table.setRowCount(total_shot)
 
-        for idx, retake in enumerate(all_retake):
-
-            self.table.setItem(idx, 0, QTableWidgetItem(retake['code']))
-            self.table.setItem(idx, 1, QTableWidgetItem(
+        for row_idx, retake in enumerate(all_retake):
+            checkbox = QCheckBox()
+            self.checkboxes.append(checkbox)
+            self.table.setCellWidget(row_idx, 0, checkbox)
+            self.table.setItem(
+                row_idx, 1, QTableWidgetItem(retake['code']))
+            self.table.setItem(row_idx, 2, QTableWidgetItem(
                 retake['assigned'][0]['name']))
-            self.table.setItem(idx, 2, QTableWidgetItem(retake['note']))
-            self.table.setItem(idx, 3, QTableWidgetItem(retake['img']))
-            self.table.setItem(idx, 4, QTableWidgetItem(retake['retake_v']))
+            self.table.setItem(
+                row_idx, 3, QTableWidgetItem(retake['note']))
+            self.table.setItem(
+                row_idx, 4, QTableWidgetItem(retake['img']))
+            self.table.setItem(
+                row_idx, 5, QTableWidgetItem(retake['retake_v']))
 
         self.table.horizontalHeader().setSectionResizeMode(
             QHeaderView.Stretch)
