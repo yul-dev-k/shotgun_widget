@@ -46,3 +46,16 @@ if __name__ == '__main__':
     mywindow = ShotGunRetakeWidget()
     mywindow.show()
     app.exec_()
+
+""" 
+  해야할 것
+  1. 맨 처음 col에 checkbox (✅) 추가
+  2. 내 retake만 보는걸 기본 뷰로
+  3. My Retake | All Retake view 선택 버튼 필요
+  4. 기본 위젯 높이 조금 줄이기
+  5. 각 col마다 width 지정해주기
+  6. Img탭 이미지 띄우기 (클릭하면 더 크게 볼 수 있으면 좋겠음. modal 처럼)
+  7. retake_v 부분 감독님 | 편집팀 그냥 이렇게 나누는게 좋을 것 같음.
+  8. note 마우스 hover하면 전체 글 나오게
+  9. retake 새로고침 버튼 필요
+"""
