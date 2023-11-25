@@ -9,8 +9,11 @@ class ShotGunRetakeWidget(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.col_title = ['✅', 'code', 'assigned', 'note', 'img', 'retake']
+        self.col_title = ['✅', '코드', '담당자', 'note', 'img', 'retake']
         self.show_my_retake = True
+        self.row_height = 40
+        self.col1_w, self.col2_w, self.col3_w, self.col4_w, self.col5_w, self.col6_w = [
+            10, 130, 50, 200, 100, 50]
         self.initUI()
         self.setWindowTitle('Shotgun Retake Widget')
         self.setWindowIcon(QIcon('icons.png'))
@@ -69,17 +72,24 @@ class ShotGunRetakeWidget(QWidget):
             self.table.setItem(row_idx, 1, QTableWidgetItem(retake['code']))
             self.table.setItem(row_idx, 2, QTableWidgetItem(
                 retake['assigned'][0]['name']))
-            self.table.setItem(row_idx, 3, QTableWidgetItem(retake['note']))
+
+            note_item = QTableWidgetItem(retake['note'])
+            self.table.setItem(row_idx, 3, note_item)
+
             self.table.setItem(row_idx, 4, QTableWidgetItem(retake['img']))
             self.table.setItem(
                 row_idx, 5, QTableWidgetItem(retake['retake_v']))
 
-        self.table.setColumnWidth(0, 10)
-        self.table.setColumnWidth(1, 130)
-        self.table.setColumnWidth(2, 50)
-        self.table.setColumnWidth(3, 150)
-        self.table.setColumnWidth(4, 100)
-        self.table.setColumnWidth(5, 50)
+            note_item.setToolTip(retake['note'])
+
+            self.table.setRowHeight(row_idx, self.row_height)
+
+        self.table.setColumnWidth(0, self.col1_w)
+        self.table.setColumnWidth(1, self.col2_w)
+        self.table.setColumnWidth(2, self.col3_w)
+        self.table.setColumnWidth(3, self.col4_w)
+        self.table.setColumnWidth(4, self.col5_w)
+        self.table.setColumnWidth(5, self.col6_w)
 
         return self.table
 
@@ -96,10 +106,17 @@ class ShotGunRetakeWidget(QWidget):
             self.table.setItem(row_idx, 1, QTableWidgetItem(retake['code']))
             self.table.setItem(row_idx, 2, QTableWidgetItem(
                 retake['assigned'][0]['name']))
-            self.table.setItem(row_idx, 3, QTableWidgetItem(retake['note']))
+
+            note_item = QTableWidgetItem(retake['note'])
+            self.table.setItem(row_idx, 3, note_item)
+
             self.table.setItem(row_idx, 4, QTableWidgetItem(retake['img']))
             self.table.setItem(
                 row_idx, 5, QTableWidgetItem(retake['retake_v']))
+
+            note_item.setToolTip(retake['note'])
+
+            self.table.setRowHeight(row_idx, self.row_height)
 
     def update_toggle_button_text(self):
         if self.show_my_retake:
@@ -127,10 +144,17 @@ class ShotGunRetakeWidget(QWidget):
             self.table.setItem(row_idx, 1, QTableWidgetItem(retake['code']))
             self.table.setItem(row_idx, 2, QTableWidgetItem(
                 retake['assigned'][0]['name']))
-            self.table.setItem(row_idx, 3, QTableWidgetItem(retake['note']))
+
+            note_item = QTableWidgetItem(retake['note'])
+            self.table.setItem(row_idx, 3, note_item)
+
             self.table.setItem(row_idx, 4, QTableWidgetItem(retake['img']))
             self.table.setItem(
                 row_idx, 5, QTableWidgetItem(retake['retake_v']))
+
+            note_item.setToolTip(retake['note'])
+
+            self.table.setRowHeight(row_idx, self.row_height)
 
 
 if __name__ == '__main__':
@@ -138,17 +162,3 @@ if __name__ == '__main__':
     mywindow = ShotGunRetakeWidget()
     mywindow.show()
     sys.exit(app.exec_())
-
-
-""" 
-  해야할 것
-  1. 맨 처음 col에 checkbox (✅) 추가 
-  2. 내 retake만 보는걸 기본 뷰로 ✅
-  3. My Retake | All Retake view 선택 버튼 필요 ✅
-  4. 기본 위젯 높이 조금 줄이기 ✅
-  5. 각 col마다 width 지정해주기 ✅
-  6. Img탭 이미지 띄우기 (클릭하면 더 크게 볼 수 있으면 좋겠음. modal 처럼)
-  7. retake_v 부분 감독님 | 편집팀 그냥 이렇게 나누는게 좋을 것 같음. ✅
-  8. note 마우스 hover하면 전체 글 나오게
-  9. retake 새로고침 버튼 필요 ✅
-"""
