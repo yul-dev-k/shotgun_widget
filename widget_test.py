@@ -7,14 +7,30 @@ from retake import Retake
 class ShotGunRetakeWidget(QWidget):
     def __init__(self):
         super().__init__()
-        all_retake = Retake().get_all_retake()
+
         self.col_title = ['✅', 'code', 'assigned', 'note', 'img', 'retake']
-        self.initUI(all_retake, self.col_title)
+        self.initUI()
         self.setWindowTitle('Shotgun Retake Widget')
         self.setWindowIcon(QIcon('icons.png'))
 
-    def initUI(self, all_retake, col_title):
-        total_shot = len(all_retake)
+    def initUI(self):
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.table(self.my_retake_ui(), self.col_title))
+        self.setLayout(layout)
+
+        self.move(300, 300)
+        self.setGeometry(300, 100, 570, 200)
+        self.show()
+
+    def all_retake_ui(self):
+        return Retake().get_all_retake()
+
+    def my_retake_ui(self):
+        return Retake().get_my_retake()
+
+    def table(self, view, col_title):
+        total_shot = len(view)
         self.checkboxes = []
 
         self.table = QTableWidget()
@@ -22,7 +38,7 @@ class ShotGunRetakeWidget(QWidget):
         self.table.setHorizontalHeaderLabels(col_title)
         self.table.setRowCount(total_shot)
 
-        for row_idx, retake in enumerate(all_retake):
+        for row_idx, retake in enumerate(view):
             checkbox = QCheckBox()
             self.checkboxes.append(checkbox)
             self.table.setCellWidget(row_idx, 0, checkbox)
@@ -44,13 +60,7 @@ class ShotGunRetakeWidget(QWidget):
         self.table.setColumnWidth(4, 100)
         self.table.setColumnWidth(5, 50)
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.table)
-        self.setLayout(layout)
-
-        self.move(300, 300)
-        self.setGeometry(300, 100, 570, 200)
-        self.show()
+        return self.table
 
 
 if __name__ == '__main__':
