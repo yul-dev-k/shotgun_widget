@@ -81,10 +81,10 @@ class Retake:
             for retake in all_retake:
                 if data['task_id'] == retake['id']:
                     retake_list.append({"code": data['code'], "assigned": data['assigned'],
-                                       "note": retake['sg_note'], "img": retake['image'], "retake_v": '감독님'})
+                                       "note": retake['sg_note'], "img": retake['image'], "retake_v": '감독님', "task_id": data['task_id']})
                 elif data['task_id']+1 == retake['id']:
                     retake_list.append({"code": data['code'], "assigned": data['assigned'],
-                                       "note": retake['sg_note'], "img": retake['image'], "retake_v": '편집팀'})
+                                       "note": retake['sg_note'], "img": retake['image'], "retake_v": '편집팀', "task_id": data['task_id']+1})
         # print("time :", time.time() - start)
         return retake_list
 
@@ -96,10 +96,10 @@ class Retake:
                 if data['task_id'] == retake['id'] and data['assigned'][0]['id'] == self.user_id:
 
                     retake_list.append({"code": data['code'], "assigned": data['assigned'],
-                                       "note": retake['sg_note'], "img": retake['image'], "retake_v": '감독님'})
+                                       "note": retake['sg_note'], "img": retake['image'], "retake_v": '감독님', "task_id": data['task_id']})
                 elif data['task_id']+1 == retake['id'] and data['assigned'][0]['id'] == self.user_id:
 
                     retake_list.append({"code": data['code'], "assigned": data['assigned'],
-                                       "note": retake['sg_note'], "img": retake['image'], "retake_v": '편집팀'})
+                                       "note": retake['sg_note'], "img": retake['image'], "retake_v": '편집팀', "task_id": data['task_id']+1})
         # print("time :", time.time() - start)
         return retake_list

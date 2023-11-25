@@ -1,11 +1,21 @@
+import shotgun_api3
+from dotenv import load_dotenv
+import os
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from retake import Retake
+load_dotenv()
 
 
 class ShotGunRetakeWidget(QWidget):
+    URL = os.environ.get("BASE_URL")
+    LOGIN = os.environ.get("LOGIN")
+    PW = os.environ.get("PASSWORD")
+
+    sg = shotgun_api3.Shotgun(URL, login=LOGIN, password=PW)
+
     def __init__(self):
         super().__init__()
 
@@ -41,7 +51,7 @@ class ShotGunRetakeWidget(QWidget):
         self.setLayout(layout)
 
         self.move(300, 300)
-        self.setGeometry(300, 100, 570, 200)
+        self.setGeometry(300, 100, 600, 200)
         self.update()
         self.show()
 
@@ -68,7 +78,7 @@ class ShotGunRetakeWidget(QWidget):
         for row_idx, retake in enumerate(view):
             checkbox = QCheckBox()
             checkbox.stateChanged.connect(
-                lambda state, row=row_idx: self.checkbox_state_changed(row, state))
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
 
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
@@ -104,7 +114,7 @@ class ShotGunRetakeWidget(QWidget):
         for row_idx, retake in enumerate(new_view):
             checkbox = QCheckBox()
             checkbox.stateChanged.connect(
-                lambda state, row=row_idx: self.checkbox_state_changed(row, state))
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
 
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
@@ -146,7 +156,7 @@ class ShotGunRetakeWidget(QWidget):
         for row_idx, retake in enumerate(data):
             checkbox = QCheckBox()
             checkbox.stateChanged.connect(
-                lambda state, row=row_idx: self.checkbox_state_changed(row, state))
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
 
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
@@ -166,9 +176,15 @@ class ShotGunRetakeWidget(QWidget):
 
             self.tableWidget.setRowHeight(row_idx, self.row_height)
 
-    def checkbox_state_changed(self, row_idx, state):
+    def checkbox_state_changed(self, row_idx, state, task_id, checkbox):
         if state == Qt.Checked:
-            print(f"현재 {row_idx} 선택")
+            reply = QMessageBox.warning(
+                self, "Alert", "'wfs'로 바꾸시겠습니까?", QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.No:
+                checkbox.setChecked(False)
+            else:
+                self.sg.update('Task', task_id, {"sg_f_status": "wfr"})
+                self.tableWidget.setRowHidden(row_idx, True)
 
 
 if __name__ == '__main__':
