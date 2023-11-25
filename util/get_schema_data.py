@@ -28,5 +28,6 @@ def save_schema_field(schema_name):
     print(json_data)
 
 
-save_schema_field('Shot')
-save_schema_field('Task')
+save_schema_field('HumanUser')
+# save_schema_field('Shot')
+# save_schema_field('Task')
