@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QCheckBox, QVBoxLayout, QWidget, QMessageBox
+from PyQt5.QtWidgets import QHBoxLayout, QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QCheckBox, QVBoxLayout, QWidget, QMessageBox, QComboBox, QLabel, QSizePolicy
 from PyQt5.QtCore import Qt
 import numpy as np
+import os
 
 
 class ShotGunRetakeWidget(QTableWidget):
@@ -62,7 +63,6 @@ class ShotGunRetakeWidget(QTableWidget):
             self.setItem(i, 9, QTableWidgetItem(
                 str(item[1]["retake"]["retake03"]["note"]) if item[1]["retake"]["retake03"] else ""))
 
-            # Set item flags to make them read-only
             for j in range(self.columnCount()):
                 item = self.item(i, j)
                 if item:
@@ -81,7 +81,26 @@ class ShotGunRetakeWidget(QTableWidget):
         self.setColumnWidth(8, 50)
         self.setColumnWidth(9, 200)
 
-        self.show()
+    def create_combo_box(self):
+        combo_box = QComboBox(self)
+        combo_box.addItems(self.get_episode_files())
+        combo_box.currentIndexChanged.connect(self.on_combo_box_change)
+
+        return combo_box
+
+    def on_combo_box_change(self, index):
+        selected_file = self.get_episode_files()[index]
+        # Load the selected file and update the UI
+        print(f"Selected file: {selected_file}")
+        # Add your code to update the UI with the data from the selected file
+
+    @staticmethod
+    def get_episode_files():
+        folder_path = "DB"  # Change this to your actual folder path
+        files = [file.split('.npy')[0] for file in os.listdir(
+            folder_path) if file.endswith(".npy")]
+
+        return files
 
     def checkbox_state_changed(self, state, row, retake_type):
         checkbox = self.cellWidget(row, 2 if retake_type == "retake02" else 6)
@@ -114,10 +133,31 @@ class ShotGunRetakeWidget(QTableWidget):
 def create_gui(data):
     app = QApplication([])
     window = QMainWindow()
+
     main_widget = QWidget()
     main_layout = QVBoxLayout(main_widget)
+
+    # Create the label and combo box layout
+    combo_box_layout = QHBoxLayout()
+    ep_label = QLabel("ep")
+    combo_box_layout.addWidget(ep_label)
+    combo_box_layout.addStretch()  # Add stretch to push combo box to the right
+
     widget = ShotGunRetakeWidget(data)
-    main_layout.addWidget(widget)
+    combo_box = QComboBox()
+    combo_box.addItems(widget.get_episode_files())
+    combo_box.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+    combo_box.currentIndexChanged.connect(widget.on_combo_box_change)
+    combo_box_layout.addWidget(combo_box)
+
+    main_layout.addLayout(combo_box_layout)
+
+    # Create the table layout
+    table_layout = QVBoxLayout()
+    table_layout.addWidget(widget)
+
+    main_layout.addLayout(table_layout)
+
     window.setCentralWidget(main_widget)
     window.show()
     app.exec_()
@@ -127,4 +167,4 @@ def get_retake_data(ep_num):
     return (np.load(f"DB/ep{ep_num}.npy", allow_pickle=True))
 
 
-create_gui(get_retake_data(606))
+create_gui()

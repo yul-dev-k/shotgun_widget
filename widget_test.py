@@ -42,14 +42,14 @@ class ShotGunRetakeWidget(QWidget):
         self.table.setColumnWidth(2, 50)
         self.table.setColumnWidth(3, 150)
         self.table.setColumnWidth(4, 100)
-        self.table.setColumnWidth(5, 10)
+        self.table.setColumnWidth(5, 50)
 
         layout = QVBoxLayout()
         layout.addWidget(self.table)
         self.setLayout(layout)
 
         self.move(300, 300)
-        self.setGeometry(300, 100, 550, 200)
+        self.setGeometry(300, 100, 570, 200)
         self.show()
 
 
@@ -67,7 +67,7 @@ if __name__ == '__main__':
   4. 기본 위젯 높이 조금 줄이기 ✅
   5. 각 col마다 width 지정해주기 ✅
   6. Img탭 이미지 띄우기 (클릭하면 더 크게 볼 수 있으면 좋겠음. modal 처럼)
-  7. retake_v 부분 감독님 | 편집팀 그냥 이렇게 나누는게 좋을 것 같음.
+  7. retake_v 부분 감독님 | 편집팀 그냥 이렇게 나누는게 좋을 것 같음. ✅
   8. note 마우스 hover하면 전체 글 나오게
   9. retake 새로고침 버튼 필요
 """
