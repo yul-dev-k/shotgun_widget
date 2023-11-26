@@ -2,6 +2,7 @@ import shotgun_api3
 from dotenv import load_dotenv
 import os
 import time
+from tkinter import messagebox
 load_dotenv()
 start = time.time()
 
@@ -47,7 +48,15 @@ class Retake:
     ]
 
     def __init__(self):
-        self.user_id = self.get_user_id()['id']
+        try:
+            self.user_id = self.get_user_id()['id']
+        except shotgun_api3.shotgun.AuthenticationFault as failed_auth:
+            if 'authenticate' in str(failed_auth).lower():
+                messagebox.showerror(
+                    "ERROR", "레거시 로그인 비밀번호를 발급 받아주세요.")
+            elif 'not_found' in str(failed_auth).lower():
+                messagebox.showerror(
+                    "ERROR", "access token 발급 및 바인드 해주세요.")
         self.selected_data = [
             {"task_id": item['tasks'][4]['id'], "code": item['code'], "assigned": item['sg_assigned']} for sublist in self.all_shot_data() for item in sublist
         ]
