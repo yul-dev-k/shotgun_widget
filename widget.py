@@ -77,6 +77,11 @@ class ShotGunRetakeWidget(QWidget):
         vbox = QVBoxLayout()
         layout = QVBoxLayout()
 
+        self.window_flag_button = QPushButton('항상 위 📌', self)
+        self.window_flag_button.setCheckable(True)
+        self.window_flag_button.toggled.connect(self.toggle_window)
+        self.window_flag_button.setMaximumWidth(100)
+
         self.refresh_button = QPushButton('새로 고침', self)
         self.refresh_button.clicked.connect(self.refresh_data)
         self.refresh_button.setMaximumWidth(100)
@@ -85,6 +90,7 @@ class ShotGunRetakeWidget(QWidget):
         self.toggle_button.clicked.connect(self.toggle_view)
         self.toggle_button.setMaximumWidth(150)
 
+        hbox.addWidget(self.window_flag_button)
         hbox.addStretch(3)
         hbox.addWidget(self.refresh_button)
         hbox.addWidget(self.toggle_button)
@@ -104,6 +110,17 @@ class ShotGunRetakeWidget(QWidget):
 
     def my_retake_ui(self):
         return Retake().get_my_retake()
+
+    def toggle_window(self, checked):
+        print(checked)
+        if checked:
+            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+            self.window_flag_button.setText('항상 위 끄기')
+        else:
+            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
+            self.window_flag_button.setText('항상 위 📌')
+        self.show()
+        self.update()
 
     def toggle_view(self):
         self.show_my_retake = not self.show_my_retake
