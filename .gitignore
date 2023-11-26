@@ -3,3 +3,7 @@
 /schema
 
 /shot
+
+/build
+/dist
+*.spec
