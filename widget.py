@@ -112,7 +112,6 @@ class ShotGunRetakeWidget(QWidget):
         return Retake().get_my_retake()
 
     def toggle_window(self, checked):
-        print(checked)
         if checked:
             self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
             self.window_flag_button.setText('항상 위 끄기')

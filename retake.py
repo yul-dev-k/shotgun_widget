@@ -12,7 +12,10 @@ class Retake:
     LOGIN = os.environ.get("LOGIN")
     PW = os.environ.get("PASSWORD")
 
-    sg = shotgun_api3.Shotgun(URL, login=LOGIN, password=PW)
+    try:
+        sg = shotgun_api3.Shotgun(URL, login=LOGIN, password=PW)
+    except ValueError:
+        messagebox.showerror("ERROR", ".env 파일의 LOGIN/PASSWORD가 모두 공란입니다.")
 
     episodes_id_name = [
         # {'id': 4819, 'name': 'EP600'},
@@ -53,10 +56,13 @@ class Retake:
         except shotgun_api3.shotgun.AuthenticationFault as failed_auth:
             if 'authenticate' in str(failed_auth).lower():
                 messagebox.showerror(
-                    "ERROR", "레거시 로그인 비밀번호를 발급 받아주세요.")
+                    "ERROR", "레거시 로그인 비밀번호를 발급 받아주세요. \n\n혹은 env에서 LOGIN/PASSWORD가 틀렸는지 확인해주세요.")
             elif 'not_found' in str(failed_auth).lower():
                 messagebox.showerror(
                     "ERROR", "access token 발급 및 바인드 해주세요.")
+        except ValueError:
+            messagebox.showerror(
+                "ERROR", ".env에서 LOGIN 혹은 PASSWORD 부분이 공란입니다.")
         self.selected_data = [
             {"task_id": item['tasks'][4]['id'], "code": item['code'], "assigned": item['sg_assigned']} for sublist in self.all_shot_data() for item in sublist
         ]
