@@ -23,6 +23,7 @@ class Notification(QThread):
 
     def stop(self):
         self.running = False
+        self.terminate()
 
     def is_working_hours(self):
         now = datetime.now().time()
