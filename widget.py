@@ -1,170 +1,252 @@
-from PyQt5.QtWidgets import QHBoxLayout, QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QCheckBox, QVBoxLayout, QWidget, QMessageBox, QComboBox, QLabel, QSizePolicy
-from PyQt5.QtCore import Qt
-import numpy as np
+import shotgun_api3
+from dotenv import load_dotenv
 import os
+import sys
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from retake import Retake
+from plyer import notification
+import time
+from datetime import datetime
+load_dotenv()
 
 
-class ShotGunRetakeWidget(QTableWidget):
-    def __init__(self, data):
+class Notification(QThread):
+    new_feedback_signal = pyqtSignal()
+    recent = [my_retake['task_id'] for my_retake in Retake().get_my_retake()]
+
+    def __init__(self, delay, parent=None):
+        super().__init__(parent)
+        self.delay = delay
+        self.running = True
+
+    def stop(self):
+        self.running = False
+
+    def is_working_hours(self):
+        now = datetime.now().time()
+        start_time = datetime.strptime("09:00", "%H:%M").time()
+        end_time = datetime.strptime("20:00", "%H:%M").time()
+        return start_time <= now <= end_time
+
+    def run(self):
+        while self.running:
+            time.sleep(self.delay)
+
+            if self.is_working_hours():
+                old = self.recent
+                new_data = [my_retake['task_id']
+                            for my_retake in Retake().get_my_retake()]
+                self.recent = new_data
+                new_feedback = set(self.recent) - set(old)
+
+                if new_feedback:
+                    self.new_feedback_signal.emit()
+
+
+class ShotGunRetakeWidget(QWidget):
+    URL = os.environ.get("BASE_URL")
+    LOGIN = os.environ.get("LOGIN")
+    PW = os.environ.get("PASSWORD")
+
+    sg = shotgun_api3.Shotgun(URL, login=LOGIN, password=PW)
+
+    def __init__(self):
         super().__init__()
-        self.setWindowTitle("Shotgun Retake Widget")
 
-        self.data = self.filter_data(data)
-        self.init_ui()
+        self.col_title = ['✅', '코드', '담당자', 'note', 'img', 'retake']
+        self.show_my_retake = True
+        self.row_height = 40
+        self.col1_w, self.col2_w, self.col3_w, self.col4_w, self.col5_w, self.col6_w = [
+            10, 130, 50, 200, 100, 50]
+        self.initUI()
+        self.setWindowTitle('Shotgun Retake Widget')
+        self.setWindowIcon(QIcon('icons.png'))
 
-    def filter_data(self, data):
-        return [
-            item for item in data if item[1] and item[1].get("retake") and
-            any(retake and retake.get("status") ==
-                "rtks" for retake in item[1]["retake"].values())
-        ]
+    def initUI(self):
+        self.notification_thread = Notification(1200)
+        self.notification_thread.new_feedback_signal.connect(
+            self.show_notification)
+        self.notification_thread.new_feedback_signal.connect(
+            self.refresh_data)
+        self.notification_thread.start()
 
-    def init_ui(self):
+        hbox = QHBoxLayout()
+        vbox = QVBoxLayout()
+        layout = QVBoxLayout()
 
-        self.setColumnCount(10)
-        self.setHorizontalHeaderLabels([
-            "컷", "담당자", "Check", "Status", "Img", "Note",
-            "Check", "Status", "Img", "Note"
-        ])
+        self.refresh_button = QPushButton('새로 고침', self)
+        self.refresh_button.clicked.connect(self.refresh_data)
+        self.refresh_button.setMaximumWidth(100)
 
-        self.setRowCount(len(self.data))
-        for i, item in enumerate(self.data):
-            self.setItem(i, 0, QTableWidgetItem(item[0]["shot"]["shot_code"]))
-            self.setItem(i, 1, QTableWidgetItem(
-                item[0]["shot"]["shot_assignde"]))
+        self.toggle_button = QPushButton('모든 리테이크 보기', self)
+        self.toggle_button.clicked.connect(self.toggle_view)
+        self.toggle_button.setMaximumWidth(150)
 
-            checkbox1 = QCheckBox()
-            checkbox2 = QCheckBox()
+        hbox.addStretch(3)
+        hbox.addWidget(self.refresh_button)
+        hbox.addWidget(self.toggle_button)
 
-            status_retake02 = item[1]["retake"]["retake02"]["status"] if item[1]["retake"]["retake02"] else None
-            checkbox1.setEnabled(status_retake02 == "rtks")
-            checkbox1.stateChanged.connect(
-                lambda state, i=i, retake_type="retake02": self.checkbox_state_changed(state, i, retake_type))
+        layout.addLayout(hbox)
+        self.table()
+        layout.addWidget(self.tableWidget)
+        self.setLayout(layout)
 
-            status_retake03 = item[1]["retake"]["retake03"]["status"] if item[1]["retake"]["retake03"] else None
-            checkbox2.setEnabled(status_retake03 == "rtks")
-            checkbox2.stateChanged.connect(
-                lambda state, i=i, retake_type="retake03": self.checkbox_state_changed(state, i, retake_type))
+        self.move(300, 300)
+        self.setGeometry(300, 100, 600, 200)
+        self.update()
+        self.show()
 
-            self.setCellWidget(i, 2, checkbox1)
-            self.setCellWidget(i, 6, checkbox2)
+    def all_retake_ui(self):
+        return Retake().get_all_retake()
 
-            self.setItem(i, 3, QTableWidgetItem(
-                str(status_retake02) if status_retake02 else ""))
-            self.setItem(i, 4, QTableWidgetItem(
-                self.ellipsis_text(str(item[1]["retake"]["retake02"]["image"])) if item[1]["retake"]["retake02"] else ""))
-            self.setItem(i, 5, QTableWidgetItem(
-                str(item[1]["retake"]["retake02"]["note"]) if item[1]["retake"]["retake02"] else ""))
+    def my_retake_ui(self):
+        return Retake().get_my_retake()
 
-            self.setItem(i, 7, QTableWidgetItem(
-                str(status_retake03) if status_retake03 else ""))
-            self.setItem(i, 8, QTableWidgetItem(
-                self.ellipsis_text(str(item[1]["retake"]["retake03"]["image"])) if item[1]["retake"]["retake03"] else ""))
-            self.setItem(i, 9, QTableWidgetItem(
-                str(item[1]["retake"]["retake03"]["note"]) if item[1]["retake"]["retake03"] else ""))
+    def toggle_view(self):
+        self.show_my_retake = not self.show_my_retake
+        self.update_table()
+        self.update_toggle_button_text()
 
-            for j in range(self.columnCount()):
-                item = self.item(i, j)
-                if item:
-                    item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+    def table(self):
+        view = self.my_retake_ui() if self.show_my_retake else self.all_retake_ui()
+        total_shot = len(view)
 
-            self.resizeRowToContents(i)
+        self.tableWidget = QTableWidget()
+        self.tableWidget.setColumnCount(len(self.col_title))
+        self.tableWidget.setHorizontalHeaderLabels(self.col_title)
+        self.tableWidget.setRowCount(total_shot)
 
-        self.setColumnWidth(0, 120)
-        self.setColumnWidth(1, 50)
-        self.setColumnWidth(2, 30)
-        self.setColumnWidth(3, 50)
-        self.setColumnWidth(4, 50)
-        self.setColumnWidth(5, 200)
-        self.setColumnWidth(6, 30)
-        self.setColumnWidth(7, 50)
-        self.setColumnWidth(8, 50)
-        self.setColumnWidth(9, 200)
+        for row_idx, retake in enumerate(view):
+            checkbox = QCheckBox()
+            checkbox.stateChanged.connect(
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
 
-    def create_combo_box(self):
-        combo_box = QComboBox(self)
-        combo_box.addItems(self.get_episode_files())
-        combo_box.currentIndexChanged.connect(self.on_combo_box_change)
+            self.tableWidget.setCellWidget(row_idx, 0, checkbox)
+            self.tableWidget.setItem(
+                row_idx, 1, QTableWidgetItem(retake['code']))
+            self.tableWidget.setItem(row_idx, 2, QTableWidgetItem(
+                retake['assigned'][0]['name']))
 
-        return combo_box
+            note_item = QTableWidgetItem(retake['note'])
+            self.tableWidget.setItem(row_idx, 3, note_item)
 
-    def on_combo_box_change(self, index):
-        selected_file = self.get_episode_files()[index]
-        # Load the selected file and update the UI
-        print(f"Selected file: {selected_file}")
-        # Add your code to update the UI with the data from the selected file
+            self.tableWidget.setItem(
+                row_idx, 4, QTableWidgetItem(retake['img']))
+            self.tableWidget.setItem(
+                row_idx, 5, QTableWidgetItem(retake['retake_v']))
 
-    @staticmethod
-    def get_episode_files():
-        folder_path = "DB"  # Change this to your actual folder path
-        files = [file.split('.npy')[0] for file in os.listdir(
-            folder_path) if file.endswith(".npy")]
+            note_item.setToolTip(retake['note'])
 
-        return files
+            self.tableWidget.setRowHeight(row_idx, self.row_height)
 
-    def checkbox_state_changed(self, state, row, retake_type):
-        checkbox = self.cellWidget(row, 2 if retake_type == "retake02" else 6)
+        self.tableWidget.setColumnWidth(0, self.col1_w)
+        self.tableWidget.setColumnWidth(1, self.col2_w)
+        self.tableWidget.setColumnWidth(2, self.col3_w)
+        self.tableWidget.setColumnWidth(3, self.col4_w)
+        self.tableWidget.setColumnWidth(4, self.col5_w)
+        self.tableWidget.setColumnWidth(5, self.col6_w)
 
-        if checkbox and checkbox.isChecked():
-            reply = QMessageBox.warning(self, "Alert", f"'{retake_type}'의 상태를 'wfs'로 바꾸시겠습니까?",
-                                        QMessageBox.Yes | QMessageBox.No)
+    def update_table(self):
+        self.tableWidget.clearContents()
+        self.tableWidget.setRowCount(0)
+        new_view = self.my_retake_ui() if self.show_my_retake else self.all_retake_ui()
+        self.tableWidget.setRowCount(len(new_view))
 
-            if reply == QMessageBox.No:
-                checkbox.blockSignals(True)
-                checkbox.setChecked(False)
-                checkbox.blockSignals(False)
-            if reply == QMessageBox.Yes:
-                self.data[row][1]["retake"][retake_type]["status"] = "wfs"
-                self.hide_row(row)
+        for row_idx, retake in enumerate(new_view):
+            checkbox = QCheckBox()
+            checkbox.stateChanged.connect(
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
 
-                print(f"현재 {row}열의 {retake_type}")
-                print(self.data[row][1])
+            self.tableWidget.setCellWidget(row_idx, 0, checkbox)
+            self.tableWidget.setItem(
+                row_idx, 1, QTableWidgetItem(retake['code']))
+            self.tableWidget.setItem(row_idx, 2, QTableWidgetItem(
+                retake['assigned'][0]['name']))
 
-    def hide_row(self, row):
-        self.setRowHidden(row, True)
+            note_item = QTableWidgetItem(retake['note'])
+            self.tableWidget.setItem(row_idx, 3, note_item)
 
-    def ellipsis_text(self, text, max_len=50):
-        if len(text) > max_len:
-            return text[:max_len - 3] + "..."
+            self.tableWidget.setItem(
+                row_idx, 4, QTableWidgetItem(retake['img']))
+            self.tableWidget.setItem(
+                row_idx, 5, QTableWidgetItem(retake['retake_v']))
+
+            note_item.setToolTip(retake['note'])
+
+            self.tableWidget.setRowHeight(row_idx, self.row_height)
+
+    def update_toggle_button_text(self):
+        if self.show_my_retake:
+            self.toggle_button.setText('모든 리테이크 보기')
         else:
-            return text
+            self.toggle_button.setText('내 리테이크 보기')
+
+    def refresh_data(self):
+        if self.show_my_retake:
+            self.update_table_data(self.my_retake_ui())
+        else:
+            self.update_table_data(self.all_retake_ui())
+
+        QMessageBox.information(self, '알림', '업데이트가 완료되었습니다.')
+
+    def update_table_data(self, data):
+        self.tableWidget.clearContents()
+        self.tableWidget.setRowCount(0)
+        self.tableWidget.setRowCount(len(data))
+
+        for row_idx, retake in enumerate(data):
+            checkbox = QCheckBox()
+            checkbox.stateChanged.connect(
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
+
+            self.tableWidget.setCellWidget(row_idx, 0, checkbox)
+            self.tableWidget.setItem(
+                row_idx, 1, QTableWidgetItem(retake['code']))
+            self.tableWidget.setItem(row_idx, 2, QTableWidgetItem(
+                retake['assigned'][0]['name']))
+
+            note_item = QTableWidgetItem(retake['note'])
+            self.tableWidget.setItem(row_idx, 3, note_item)
+
+            self.tableWidget.setItem(
+                row_idx, 4, QTableWidgetItem(retake['img']))
+            self.tableWidget.setItem(
+                row_idx, 5, QTableWidgetItem(retake['retake_v']))
+
+            note_item.setToolTip(retake['note'])
+
+            self.tableWidget.setRowHeight(row_idx, self.row_height)
+
+    def checkbox_state_changed(self, row_idx, state, task_id, checkbox):
+        if state == Qt.Checked:
+            reply = QMessageBox.warning(
+                self, "Alert", "'wfs'로 바꾸시겠습니까?", QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.No:
+                checkbox.setChecked(False)
+            else:
+                self.sg.update('Task', task_id, {"sg_f_status": "wfr"})
+                self.tableWidget.setRowHidden(row_idx, True)
+
+    def show_notification(self):
+        notification.notify(
+            title='Shotgun Retake Widget',
+            message='새로운 피드백이 달렸습니다.',
+            app_name="Shotgun Retake Widget",
+            timeout=30,
+        )
 
 
-def create_gui(data):
-    app = QApplication([])
-    window = QMainWindow()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    mywindow = ShotGunRetakeWidget()
+    mywindow.show()
 
-    main_widget = QWidget()
-    main_layout = QVBoxLayout(main_widget)
+    def on_quit():
+        mywindow.notification_thread.stop()
+        mywindow.notification_thread.wait()
 
-    # Create the label and combo box layout
-    combo_box_layout = QHBoxLayout()
-    ep_label = QLabel("ep")
-    combo_box_layout.addWidget(ep_label)
-    combo_box_layout.addStretch()  # Add stretch to push combo box to the right
+    app.aboutToQuit.connect(on_quit)
 
-    widget = ShotGunRetakeWidget(data)
-    combo_box = QComboBox()
-    combo_box.addItems(widget.get_episode_files())
-    combo_box.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-    combo_box.currentIndexChanged.connect(widget.on_combo_box_change)
-    combo_box_layout.addWidget(combo_box)
-
-    main_layout.addLayout(combo_box_layout)
-
-    # Create the table layout
-    table_layout = QVBoxLayout()
-    table_layout.addWidget(widget)
-
-    main_layout.addLayout(table_layout)
-
-    window.setCentralWidget(main_widget)
-    window.show()
-    app.exec_()
-
-
-def get_retake_data(ep_num):
-    return (np.load(f"DB/ep{ep_num}.npy", allow_pickle=True))
-
-
-create_gui()
+    sys.exit(app.exec_())
