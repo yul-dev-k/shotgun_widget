@@ -138,7 +138,7 @@ class ShotGunRetakeWidget(QWidget):
         for row_idx, retake in enumerate(view):
             checkbox = QCheckBox()
             checkbox.stateChanged.connect(
-                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox, retake_v=retake['retake_v']: self.checkbox_state_changed(row, state, task_id, checkbox, retake_v))
 
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
@@ -174,7 +174,7 @@ class ShotGunRetakeWidget(QWidget):
         for row_idx, retake in enumerate(new_view):
             checkbox = QCheckBox()
             checkbox.stateChanged.connect(
-                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox, retake_v=retake['retake_v']: self.checkbox_state_changed(row, state, task_id, checkbox, retake_v))
 
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
@@ -216,7 +216,7 @@ class ShotGunRetakeWidget(QWidget):
         for row_idx, retake in enumerate(data):
             checkbox = QCheckBox()
             checkbox.stateChanged.connect(
-                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox, retake_v=retake['retake_v']: self.checkbox_state_changed(row, state, task_id, checkbox, retake_v))
 
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
@@ -236,14 +236,17 @@ class ShotGunRetakeWidget(QWidget):
 
             self.tableWidget.setRowHeight(row_idx, self.row_height)
 
-    def checkbox_state_changed(self, row_idx, state, task_id, checkbox):
+    def checkbox_state_changed(self, row_idx, state, task_id, checkbox, retake_v):
         if state == Qt.Checked:
             reply = QMessageBox.warning(
                 self, "Alert", "'wfs'로 바꾸시겠습니까?", QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.No:
                 checkbox.setChecked(False)
             else:
+                self.sg.update('Task', task_id+1, {"sg_f_status": "aprv"}) if retake_v == "편집팀" else self.sg.update(
+                    'Task', task_id+2, {"sg_f_status": "aprv"})
                 self.sg.update('Task', task_id, {"sg_f_status": "wfr"})
+
                 self.tableWidget.setRowHidden(row_idx, True)
 
     def show_notification(self):
