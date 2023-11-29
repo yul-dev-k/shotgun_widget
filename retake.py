@@ -101,7 +101,7 @@ class Retake:
                     retake_list.append({"code": data['code'], "assigned": data['assigned'],
                                        "note": retake['sg_note'], "img": retake['image'], "retake_v": '편집팀', "task_id": data['task_id']+1})
         # print("time :", time.time() - start)
-        return retake_list
+        return sorted(retake_list, key=lambda retake: retake['code'])
 
     def get_my_retake(self):
         retake_list = []
@@ -117,4 +117,7 @@ class Retake:
                     retake_list.append({"code": data['code'], "assigned": data['assigned'],
                                        "note": retake['sg_note'], "img": retake['image'], "retake_v": '편집팀', "task_id": data['task_id']+1})
         # print("time :", time.time() - start)
-        return retake_list
+        return sorted(retake_list, key=lambda retake: retake['code'])
+
+        # return retake_list
+Retake().get_my_retake()
