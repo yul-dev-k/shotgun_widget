@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont, QColor
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from retake import Retake
 from plyer import notification
@@ -82,6 +82,8 @@ class ShotGunRetakeWidget(QWidget):
         self.window_flag_button.toggled.connect(self.toggle_window)
         self.window_flag_button.setMaximumWidth(100)
 
+        self.total_retake_label = QLabel("", self)
+
         self.refresh_button = QPushButton('새로 고침', self)
         self.refresh_button.clicked.connect(self.refresh_data)
         self.refresh_button.setMaximumWidth(100)
@@ -92,6 +94,7 @@ class ShotGunRetakeWidget(QWidget):
 
         hbox.addWidget(self.window_flag_button)
         hbox.addStretch(3)
+        hbox.addWidget(self.total_retake_label)
         hbox.addWidget(self.refresh_button)
         hbox.addWidget(self.toggle_button)
 
@@ -128,17 +131,18 @@ class ShotGunRetakeWidget(QWidget):
 
     def table(self):
         view = self.my_retake_ui() if self.show_my_retake else self.all_retake_ui()
-        total_shot = len(view)
+        total_retake = len(view)
 
         self.tableWidget = QTableWidget()
         self.tableWidget.setColumnCount(len(self.col_title))
         self.tableWidget.setHorizontalHeaderLabels(self.col_title)
-        self.tableWidget.setRowCount(total_shot)
+        self.tableWidget.setRowCount(total_retake)
 
+        self.total_retake_label.setText(f"현재 retake 수: {total_retake}")
         for row_idx, retake in enumerate(view):
             checkbox = QCheckBox()
             checkbox.stateChanged.connect(
-                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox, retake_v=retake['retake_v'], total=total_retake: self.checkbox_state_changed(row, state, task_id, checkbox, retake_v, total))
 
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
@@ -151,8 +155,13 @@ class ShotGunRetakeWidget(QWidget):
 
             self.tableWidget.setItem(
                 row_idx, 4, QTableWidgetItem(retake['img']))
-            self.tableWidget.setItem(
-                row_idx, 5, QTableWidgetItem(retake['retake_v']))
+
+            retake_v_item = QTableWidgetItem(retake['retake_v'])
+            if retake['retake_v'] == '감독님':
+                font = QFont()
+                font.setBold(True)
+                retake_v_item.setBackground(QColor(173, 216, 230))
+            self.tableWidget.setItem(row_idx, 5, retake_v_item)
 
             note_item.setToolTip(retake['note'])
 
@@ -169,12 +178,14 @@ class ShotGunRetakeWidget(QWidget):
         self.tableWidget.clearContents()
         self.tableWidget.setRowCount(0)
         new_view = self.my_retake_ui() if self.show_my_retake else self.all_retake_ui()
-        self.tableWidget.setRowCount(len(new_view))
+        total_retake = len(new_view)
+        self.tableWidget.setRowCount(total_retake)
+        self.total_retake_label.setText(f"현재 retake 수: {total_retake}")
 
         for row_idx, retake in enumerate(new_view):
             checkbox = QCheckBox()
             checkbox.stateChanged.connect(
-                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox, retake_v=retake['retake_v'], total=total_retake: self.checkbox_state_changed(row, state, task_id, checkbox, retake_v, total))
 
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
@@ -187,8 +198,13 @@ class ShotGunRetakeWidget(QWidget):
 
             self.tableWidget.setItem(
                 row_idx, 4, QTableWidgetItem(retake['img']))
-            self.tableWidget.setItem(
-                row_idx, 5, QTableWidgetItem(retake['retake_v']))
+
+            retake_v_item = QTableWidgetItem(retake['retake_v'])
+            if retake['retake_v'] == '감독님':
+                font = QFont()
+                font.setBold(True)
+                retake_v_item.setBackground(QColor(173, 216, 230))
+            self.tableWidget.setItem(row_idx, 5, retake_v_item)
 
             note_item.setToolTip(retake['note'])
 
@@ -211,12 +227,14 @@ class ShotGunRetakeWidget(QWidget):
     def update_table_data(self, data):
         self.tableWidget.clearContents()
         self.tableWidget.setRowCount(0)
-        self.tableWidget.setRowCount(len(data))
+        total_retake = len(data)
+        self.tableWidget.setRowCount(total_retake)
+        self.total_retake_label.setText(f"현재 retake 수: {total_retake}")
 
         for row_idx, retake in enumerate(data):
             checkbox = QCheckBox()
             checkbox.stateChanged.connect(
-                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox: self.checkbox_state_changed(row, state, task_id, checkbox))
+                lambda state, row=row_idx, task_id=retake['task_id'], checkbox=checkbox, retake_v=retake['retake_v'], total=total_retake: self.checkbox_state_changed(row, state, task_id, checkbox, retake_v, total))
 
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
@@ -229,21 +247,32 @@ class ShotGunRetakeWidget(QWidget):
 
             self.tableWidget.setItem(
                 row_idx, 4, QTableWidgetItem(retake['img']))
-            self.tableWidget.setItem(
-                row_idx, 5, QTableWidgetItem(retake['retake_v']))
+
+            retake_v_item = QTableWidgetItem(retake['retake_v'])
+            if retake['retake_v'] == '감독님':
+                font = QFont()
+                font.setBold(True)
+                retake_v_item.setBackground(QColor(173, 216, 230))
+            self.tableWidget.setItem(row_idx, 5, retake_v_item)
 
             note_item.setToolTip(retake['note'])
 
             self.tableWidget.setRowHeight(row_idx, self.row_height)
 
-    def checkbox_state_changed(self, row_idx, state, task_id, checkbox):
+    def checkbox_state_changed(self, row_idx, state, task_id, checkbox, retake_v, total):
         if state == Qt.Checked:
             reply = QMessageBox.warning(
                 self, "Alert", "'wfs'로 바꾸시겠습니까?", QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.No:
                 checkbox.setChecked(False)
             else:
+
+                self.total_retake_label.setText(
+                    f"현재 retake 수: {str(int(total) - 1)}")
+                self.sg.update('Task', task_id+1, {"sg_f_status": "aprv"}) if retake_v == "편집팀" else self.sg.update(
+                    'Task', task_id+2, {"sg_f_status": "aprv"})
                 self.sg.update('Task', task_id, {"sg_f_status": "wfr"})
+
                 self.tableWidget.setRowHidden(row_idx, True)
 
     def show_notification(self):
@@ -256,6 +285,7 @@ class ShotGunRetakeWidget(QWidget):
 
 
 if __name__ == '__main__':
+
     app = QApplication(sys.argv)
     mywindow = ShotGunRetakeWidget()
     mywindow.show()
