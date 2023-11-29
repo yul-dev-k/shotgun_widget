@@ -12,38 +12,38 @@ from datetime import datetime
 load_dotenv()
 
 
-class Notification(QThread):
-    new_feedback_signal = pyqtSignal()
-    recent = [my_retake['task_id'] for my_retake in Retake().get_my_retake()]
+# class Notification(QThread):
+#     new_feedback_signal = pyqtSignal()
+#     recent = [my_retake['task_id'] for my_retake in Retake().get_my_retake()]
 
-    def __init__(self, delay, parent=None):
-        super().__init__(parent)
-        self.delay = delay
-        self.running = True
+#     def __init__(self, delay, parent=None):
+#         super().__init__(parent)
+#         self.delay = delay
+#         self.running = True
 
-    def stop(self):
-        self.running = False
-        self.terminate()
+#     def stop(self):
+#         self.running = False
+#         self.terminate()
 
-    def is_working_hours(self):
-        now = datetime.now().time()
-        start_time = datetime.strptime("09:00", "%H:%M").time()
-        end_time = datetime.strptime("20:00", "%H:%M").time()
-        return start_time <= now <= end_time
+#     def is_working_hours(self):
+#         now = datetime.now().time()
+#         start_time = datetime.strptime("09:00", "%H:%M").time()
+#         end_time = datetime.strptime("20:00", "%H:%M").time()
+#         return start_time <= now <= end_time
 
-    def run(self):
-        while self.running:
-            time.sleep(self.delay)
+#     def run(self):
+#         while self.running:
+#             time.sleep(self.delay)
 
-            if self.is_working_hours():
-                old = self.recent
-                new_data = [my_retake['task_id']
-                            for my_retake in Retake().get_my_retake()]
-                self.recent = new_data
-                new_feedback = set(self.recent) - set(old)
+#             if self.is_working_hours():
+#                 old = self.recent
+#                 new_data = [my_retake['task_id']
+#                             for my_retake in Retake().get_my_retake()]
+#                 self.recent = new_data
+#                 new_feedback = set(self.recent) - set(old)
 
-                if new_feedback:
-                    self.new_feedback_signal.emit()
+#                 if new_feedback:
+#                     self.new_feedback_signal.emit()
 
 
 class ShotGunRetakeWidget(QWidget):
@@ -66,12 +66,12 @@ class ShotGunRetakeWidget(QWidget):
         self.setWindowIcon(QIcon('icons.png'))
 
     def initUI(self):
-        self.notification_thread = Notification(1200)
-        self.notification_thread.new_feedback_signal.connect(
-            self.show_notification)
-        self.notification_thread.new_feedback_signal.connect(
-            self.refresh_data)
-        self.notification_thread.start()
+        # self.notification_thread = Notification(1200)
+        # self.notification_thread.new_feedback_signal.connect(
+        #     self.show_notification)
+        # self.notification_thread.new_feedback_signal.connect(
+        #     self.refresh_data)
+        # self.notification_thread.start()
 
         hbox = QHBoxLayout()
         vbox = QVBoxLayout()
@@ -285,15 +285,14 @@ class ShotGunRetakeWidget(QWidget):
 
 
 if __name__ == '__main__':
-
     app = QApplication(sys.argv)
     mywindow = ShotGunRetakeWidget()
     mywindow.show()
 
-    def on_quit():
-        mywindow.notification_thread.stop()
-        mywindow.notification_thread.wait()
+    # def on_quit():
+    #     mywindow.notification_thread.stop()
+    #     mywindow.notification_thread.wait()
 
-    app.aboutToQuit.connect(on_quit)
+    # app.aboutToQuit.connect(on_quit)
 
     sys.exit(app.exec_())
