@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont, QColor
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from retake import Retake
 from plyer import notification
@@ -151,8 +151,13 @@ class ShotGunRetakeWidget(QWidget):
 
             self.tableWidget.setItem(
                 row_idx, 4, QTableWidgetItem(retake['img']))
-            self.tableWidget.setItem(
-                row_idx, 5, QTableWidgetItem(retake['retake_v']))
+
+            retake_v_item = QTableWidgetItem(retake['retake_v'])
+            if retake['retake_v'] == '감독님':
+                font = QFont()
+                font.setBold(True)
+                retake_v_item.setBackground(QColor(173, 216, 230))
+            self.tableWidget.setItem(row_idx, 5, retake_v_item)
 
             note_item.setToolTip(retake['note'])
 
@@ -187,8 +192,13 @@ class ShotGunRetakeWidget(QWidget):
 
             self.tableWidget.setItem(
                 row_idx, 4, QTableWidgetItem(retake['img']))
-            self.tableWidget.setItem(
-                row_idx, 5, QTableWidgetItem(retake['retake_v']))
+
+            retake_v_item = QTableWidgetItem(retake['retake_v'])
+            if retake['retake_v'] == '감독님':
+                font = QFont()
+                font.setBold(True)
+                retake_v_item.setBackground(QColor(173, 216, 230))
+            self.tableWidget.setItem(row_idx, 5, retake_v_item)
 
             note_item.setToolTip(retake['note'])
 
@@ -229,8 +239,13 @@ class ShotGunRetakeWidget(QWidget):
 
             self.tableWidget.setItem(
                 row_idx, 4, QTableWidgetItem(retake['img']))
-            self.tableWidget.setItem(
-                row_idx, 5, QTableWidgetItem(retake['retake_v']))
+
+            retake_v_item = QTableWidgetItem(retake['retake_v'])
+            if retake['retake_v'] == '감독님':
+                font = QFont()
+                font.setBold(True)
+                retake_v_item.setBackground(QColor(173, 216, 230))
+            self.tableWidget.setItem(row_idx, 5, retake_v_item)
 
             note_item.setToolTip(retake['note'])
 
