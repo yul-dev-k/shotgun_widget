@@ -147,8 +147,11 @@ class ShotGunRetakeWidget(QWidget):
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
                 row_idx, 1, QTableWidgetItem(retake['code']))
-            self.tableWidget.setItem(row_idx, 2, QTableWidgetItem(
-                retake['assigned'][0]['name']))
+            if len(retake['assigned']) == 1:
+                self.tableWidget.setItem(row_idx, 2, QTableWidgetItem(
+                    retake['assigned'][0]['name']))
+            else:
+                self.tableWidget.setItem(row_idx, 2, QTableWidgetItem("공란"))
 
             note_item = QTableWidgetItem(retake['note'])
             self.tableWidget.setItem(row_idx, 3, note_item)
@@ -190,8 +193,11 @@ class ShotGunRetakeWidget(QWidget):
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
                 row_idx, 1, QTableWidgetItem(retake['code']))
-            self.tableWidget.setItem(row_idx, 2, QTableWidgetItem(
-                retake['assigned'][0]['name']))
+            if len(retake['assigned']) == 1:
+                self.tableWidget.setItem(row_idx, 2, QTableWidgetItem(
+                    retake['assigned'][0]['name']))
+            else:
+                self.tableWidget.setItem(row_idx, 2, QTableWidgetItem("공란"))
 
             note_item = QTableWidgetItem(retake['note'])
             self.tableWidget.setItem(row_idx, 3, note_item)
@@ -239,8 +245,11 @@ class ShotGunRetakeWidget(QWidget):
             self.tableWidget.setCellWidget(row_idx, 0, checkbox)
             self.tableWidget.setItem(
                 row_idx, 1, QTableWidgetItem(retake['code']))
-            self.tableWidget.setItem(row_idx, 2, QTableWidgetItem(
-                retake['assigned'][0]['name']))
+            if len(retake['assigned']) == 1:
+                self.tableWidget.setItem(row_idx, 2, QTableWidgetItem(
+                    retake['assigned'][0]['name']))
+            else:
+                self.tableWidget.setItem(row_idx, 2, QTableWidgetItem("공란"))
 
             note_item = QTableWidgetItem(retake['note'])
             self.tableWidget.setItem(row_idx, 3, note_item)

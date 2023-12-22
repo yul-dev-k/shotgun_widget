@@ -23,14 +23,14 @@ class Retake:
         # {'id': 4821, 'name': 'EP602'},
         # {'id': 4822, 'name': 'EP603'},
         # {'id': 4823, 'name': 'EP604'},
-        {'id': 4824, 'name': 'EP605'},
+        # {'id': 4824, 'name': 'EP605'},
         # {'id': 4825, 'name': 'EP606'},
         {'id': 4826, 'name': 'EP607'},
         # {'id': 4827, 'name': 'EP608'},
         # {'id': 4828, 'name': 'EP609'},
         {'id': 4829, 'name': 'EP610'},
         {'id': 4830, 'name': 'EP611'},
-        # {'id': 4831, 'name': 'EP612'},
+        {'id': 4831, 'name': 'EP612'},
         # {'id': 4832, 'name': 'EP613'},
         # {'id': 4833, 'name': 'EP614'},
         # {'id': 4834, 'name': 'EP615'},
@@ -107,15 +107,18 @@ class Retake:
         retake_list = []
         for data in self.selected_data:
             for retake in self.all_retake:
+                
+                
+                if len(data['assigned']) == 1 :
+                    if data['task_id'] == retake['id'] and data['assigned'][0]['id'] == self.user_id:
 
-                if data['task_id'] == retake['id'] and data['assigned'][0]['id'] == self.user_id:
+                        retake_list.append({"code": data['code'], "assigned": data['assigned'],
+                                        "note": retake['sg_note'], "img": retake['image'], "retake_v": '감독님', "task_id": data['task_id']})
+                    elif data['task_id']+1 == retake['id'] and data['assigned'][0]['id'] == self.user_id:
 
-                    retake_list.append({"code": data['code'], "assigned": data['assigned'],
-                                       "note": retake['sg_note'], "img": retake['image'], "retake_v": '감독님', "task_id": data['task_id']})
-                elif data['task_id']+1 == retake['id'] and data['assigned'][0]['id'] == self.user_id:
+                        retake_list.append({"code": data['code'], "assigned": data['assigned'],
+                                        "note": retake['sg_note'], "img": retake['image'], "retake_v": '편집팀', "task_id": data['task_id']+1})
 
-                    retake_list.append({"code": data['code'], "assigned": data['assigned'],
-                                       "note": retake['sg_note'], "img": retake['image'], "retake_v": '편집팀', "task_id": data['task_id']+1})
         # print("time :", time.time() - start)
         return sorted(retake_list, key=lambda retake: retake['code'])
 
